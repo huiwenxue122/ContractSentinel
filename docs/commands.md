@@ -289,5 +289,6 @@ npm run dev
 | 启动后端 API     | `uvicorn app.main:app --reload`        |
 | 启动前端         | `cd frontend && npm run dev`          |
 | 单元测试（任务 23） | `python -m pytest tests/unit -v`（需在已安装依赖的 venv 中运行） |
+| 集成测试（任务 24） | `python -m pytest tests/integration -v` 或 `python -m pytest -m integration -v`（需 Neo4j + OPENAI_API_KEY；无则自动 skip） |
 
 有新任务或新脚本时，把对应命令补进本文档即可。
