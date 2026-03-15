@@ -11,3 +11,4 @@ neo4j>=5.15.0
 python-multipart>=0.0.6
 pyyaml>=6.0.1
 json-repair>=0.7.0
+langgraph>=0.2.0

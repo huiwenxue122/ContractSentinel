@@ -217,6 +217,22 @@ python scripts/run_evaluator_demo.py "EX-10.4(a)" section_7_2
 
 省略 clause_id 则随机选一个 clause。依赖 Neo4j + OPENAI_API_KEY。
 
+### 任务 12：LangGraph 多智能体编排（Scanner → Critic → Evaluator）
+
+对整份合同或指定条款列表跑完整审查链，输出 StructuredRiskMemo（items 含 clause、risk_level、rule_triggered、escalation、fallback_language、reason 等）：
+
+```bash
+python scripts/run_review_graph_demo.py "EX-10.4(a)"
+```
+
+仅跑指定条款（减少耗时）：
+
+```bash
+python scripts/run_review_graph_demo.py "EX-10.4(a)" --clauses section_5_1 section_7_2
+```
+
+依赖 Neo4j + OPENAI_API_KEY。
+
 ### 启动后端 API（FastAPI）
 
 （后续任务完成后可用）
@@ -269,6 +285,7 @@ npm run dev
 | 任务 9 Scanner 两项验证（一键） | `python scripts/run_scanner_verifications.py "EX-10.4(a)"` |
 | 任务 10 Critic（指定条款） | `python scripts/run_critic_demo.py "EX-10.4(a)" section_5_1` |
 | 任务 11 Evaluator（Scanner→Critic→Evaluator 全链） | `python scripts/run_evaluator_demo.py "EX-10.4(a)" section_7_2` |
+| 任务 12 LangGraph 全合同/指定条款审查 | `python scripts/run_review_graph_demo.py "EX-10.4(a)"` 或 `--clauses section_5_1 section_7_2` |
 | 启动后端 API     | `uvicorn app.main:app --reload`        |
 | 启动前端         | `cd frontend && npm run dev`          |
 

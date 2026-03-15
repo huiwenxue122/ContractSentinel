@@ -8,6 +8,7 @@ from app.schemas.contract import (
     Contract,
 )
 from app.schemas.playbook import Rule, RiskLevel
+from app.schemas.risk_memo import Citation, RiskMemoItem, StructuredRiskMemo
 
 __all__ = [
     "Clause",
@@ -18,4 +19,7 @@ __all__ = [
     "Contract",
     "Rule",
     "RiskLevel",
+    "Citation",
+    "RiskMemoItem",
+    "StructuredRiskMemo",
 ]

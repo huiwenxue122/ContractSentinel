@@ -107,6 +107,12 @@ This document records what was done in each phase, **main problems encountered**
 - **Demo**: `scripts/run_evaluator_demo.py` — runs Scanner → Critic → Evaluator on one clause and prints escalation, fallback_language, reason per finding.
 - **Result**: Output aligns with risk_memo for API/frontend; ready for LangGraph orchestration (Task 12).
 
+### Task 12: LangGraph multi-agent orchestration
+
+- **Done**: `app/schemas/risk_memo.py` (Citation, RiskMemoItem, StructuredRiskMemo); `app/agents/graph.py` (ReviewState TypedDict, _process_node, build_review_graph, run_review). LangGraph StateGraph: one node "process" that either loads the next clause and runs Scanner or runs Critic + Evaluator on the next finding and appends a RiskMemoItem; conditional edge to self or END. `run_review(contract_id, clause_ids=None, rules=None, playbook_path=None)` returns StructuredRiskMemo.
+- **Demo**: `scripts/run_review_graph_demo.py` — run_review then print items and JSON.
+- **Result**: API/frontend can call run_review to get the full memo; pipeline is Scanner → Critic → Evaluator per clause.
+
 ---
 
 ## Current status summary
@@ -120,7 +126,7 @@ This document records what was done in each phase, **main problems encountered**
 | Full-contract scan | ✅  | scan_all_clauses outputs TSV and writes TRIGGERS to Neo4j |
 | Critic          | ✅     | `evaluate_finding`; uses clause + graph context to output justified/reason |
 | Evaluator       | ✅     | `evaluate_escalation`; outputs escalation, fallback_language, reason |
-| LangGraph       | ⏳     | Not implemented |
+| LangGraph       | ✅     | build_review_graph + run_review; outputs StructuredRiskMemo |
 | API / Frontend  | ⏳     | Stub only; review flow not wired |
 
 ---
@@ -134,5 +140,6 @@ This document records what was done in each phase, **main problems encountered**
 - **Diagnostics**: `python scripts/run_scanner_diagnostic.py`; `python scripts/run_scanner_verifications.py "EX-10.4(a)"`
 - **Critic (Task 10)**: `python scripts/run_critic_demo.py "EX-10.4(a)" section_5_1`
 - **Evaluator (Task 11)**: `python scripts/run_evaluator_demo.py "EX-10.4(a)" section_7_2` (Scanner → Critic → Evaluator)
+- **LangGraph (Task 12)**: `python scripts/run_review_graph_demo.py "EX-10.4(a)"` or `--clauses section_5_1 section_7_2`
 
 More commands: [commands.md](commands.md).
