@@ -19,8 +19,9 @@ Return exactly one valid JSON object with these top-level keys:
 "clauses", "definitions", "parties", "cross_references", "obligations"
 
 1. Clauses
-- Split the contract by Section (or equivalent numbered divisions). Use the finest visible numbering (e.g. 1.1, 1.2, 2.1). Each numbered subsection is one clause.
-- For each clause: "id" use underscore form (e.g. section_1_1, section_1_2, section_2_1); "section_id" use display form (e.g. "Section 1.1", "Section 1.2"); "text" is the full text of that section; "page" if known else null.
+- Split the contract at subsection level: every visible numbered subsection (e.g. 1.1, 1.2, 2.1, 2.2) must be a separate clause. Do not merge subsections.
+- For each clause: "id" use underscore form (e.g. section_1_1, section_1_2); "section_id" use display form (e.g. "Section 1.1", "Section 1.2"); "text" is a short identifying snippet only (opening sentence or first ~500 chars of that subsection), not the full section text; "page" if known else null.
+- Goal: complete clause coverage by subsection; keep "text" as a snippet so output stays compact.
 
 2. Definitions
 - Extract explicit definitions (e.g. "X" means ..., "X" shall mean ..., is defined as ...).
@@ -31,20 +32,18 @@ Return exactly one valid JSON object with these top-level keys:
 - For each: "name", "description" (role if known, else null).
 
 4. Cross references
-- Extract references from one clause/section to another (e.g. "subject to Section 4.1", "as set forth in Section 10").
-- For each: "from_clause_id", "to_clause_id", "ref_text" (or null). If none, return [].
+- If clearly present, extract; otherwise return []. For each: "from_clause_id", "to_clause_id", "ref_text" (or null).
 
 5. Obligations
-- Extract clear obligations (e.g. shall, must, required to).
-- For each: "description", "clause_id" (or null). If none, return [].
+- If clearly present, extract; otherwise return []. For each: "description", "clause_id" (or null).
 
 Return only valid JSON. No markdown. No code fences. Double-quoted keys. No trailing commas.
 
 Example shape:
 {{
   "clauses": [
-    {{ "id": "section_1_1", "section_id": "Section 1.1", "text": "Full clause text for Section 1.1...", "page": null }},
-    {{ "id": "section_1_2", "section_id": "Section 1.2", "text": "Full clause text for Section 1.2...", "page": null }}
+    {{ "id": "section_1_1", "section_id": "Section 1.1", "text": "Supplier shall provide the services (the \\"Services\\") described in reasonable detail...", "page": null }},
+    {{ "id": "section_1_2", "section_id": "Section 1.2", "text": "Supplier acknowledges that Company is entering into this Agreement...", "page": null }}
   ],
   "definitions": [
     {{ "term": "Services", "definition": "definition text", "source_clause_id": "1.1" }}

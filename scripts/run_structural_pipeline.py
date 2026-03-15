@@ -29,11 +29,6 @@ def main() -> None:
     full_text, blocks = parse_pdf(pdf_path)
     print(f"  -> {len(full_text)} chars, {len(blocks)} pages")
 
-    from app.config import get_settings
-    max_chars = get_settings().openai_max_input_chars
-    sent = min(len(full_text), max_chars)
-    if sent < len(full_text):
-        print(f"  -> sending first {sent} chars to LLM (set OPENAI_MAX_INPUT_CHARS={len(full_text)} in .env for full doc)")
     print("Extracting (LLM)...")
     contract = extract_contract(full_text, contract_id=pdf_path.stem)
     print(f"  -> {len(contract.clauses)} clauses, {len(contract.definitions)} definitions, "

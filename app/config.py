@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
     openai_max_output_tokens: int = 16384
-    # 单次调用时发给 API 的合同文本最大字符数。默认 50000 保证能跑完不卡住；要全文可在 .env 设 OPENAI_MAX_INPUT_CHARS=120000
-    openai_max_input_chars: int = 50000
+    # 单次调用时发给 API 的合同文本最大字符数；snippet-only clause text 下用全文可跑完并得到约 40 clauses
+    openai_max_input_chars: int = 120000
 
     # Neo4j
     neo4j_uri: str = "bolt://localhost:7687"
