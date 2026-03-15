@@ -12,7 +12,10 @@ function riskLevelClass(level: string): string {
   return "bg-amber-100 text-amber-800";
 }
 
-function riskLevelLabel(level: string, t: (k: string) => string): string {
+function riskLevelLabel(
+  level: string,
+  t: (k: "riskLevelHigh" | "riskLevelLow" | "riskLevelMedium") => string
+): string {
   const v = level.toLowerCase();
   if (v === "high") return t("riskLevelHigh");
   if (v === "low") return t("riskLevelLow");
