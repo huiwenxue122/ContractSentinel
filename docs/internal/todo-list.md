@@ -227,7 +227,7 @@
 |----|------|
 | **任务名称** | 风险卡片与证据链组件 |
 | **要创建的文件** | `frontend/components/RiskCard.tsx`、`frontend/components/EvidenceChain.tsx`（可选） |
-| **功能说明** | RiskCard：展示单条风险（clause、rule_triggered、reason、fallback_language、escalation、citation）；EvidenceChain：展示引用到的条款/定义等证据链。 |
+| **功能说明** | RiskCard：展示单条风险（clause、rule_triggered、reason、fallback_language、escalation、citation）；EvidenceChain（可选）：用 API 已有的 citation + evidence_summary 展示证据；完整「引用条款/定义列表」待后端提供 context 接口后再扩展。 |
 | **输入** | 单条 RiskMemoItem 或等效 props。 |
 | **输出** | 渲染后的卡片与可展开的证据链。 |
 
