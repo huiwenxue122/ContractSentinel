@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.parsing import parse_pdf
-from app.extraction import extract_contract
+from app.extraction import extract_contract, extract_cross_references, segment_clauses
 
 
 def main() -> None:
@@ -29,8 +29,20 @@ def main() -> None:
     full_text, blocks = parse_pdf(pdf_path)
     print(f"  -> {len(full_text)} chars, {len(blocks)} pages")
 
+    # 1) Rule-based clause segmentation (stable count; no LLM)
+    clauses, seg_stats = segment_clauses(full_text)
+    print(f"  -> rule-based clause segmentation raw matches: {seg_stats['raw_matches']}")
+    print(f"  -> rule-based clauses after dedup/filter: {seg_stats['after_dedup_filter']}")
+    if not clauses:
+        print("  (warning: rule-based segmenter found no subsections, using LLM clauses)")
+
+    # 2) LLM extraction for definitions / parties / obligations (clauses from step 1 overwrite LLM clauses)
     print("Extracting (LLM)...")
     contract = extract_contract(full_text, contract_id=pdf_path.stem)
+    if clauses:
+        contract.clauses = clauses
+        contract.cross_references = extract_cross_references(contract.clauses)
+
     print(f"  -> {len(contract.clauses)} clauses, {len(contract.definitions)} definitions, "
           f"{len(contract.cross_references)} cross-refs, {len(contract.parties)} parties")
 
