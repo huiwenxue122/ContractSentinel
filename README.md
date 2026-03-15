@@ -178,7 +178,7 @@ Development is tracked in phases; each phase is documented with **what was done*
 - **Shell error when passing contract ID** — Contract IDs with parentheses (e.g. `EX-10.4(a)`) must be quoted in zsh to avoid `number expected`.
 - **Findings written back to graph** — Full-contract scan now creates `Rule` nodes and `Clause -[:TRIGGERS {evidence}]-> Rule` edges so the Critic can read them directly.
 
-Full detail (problems, solutions, and results per phase) is in **[docs/PROGRESS.md](docs/PROGRESS.md)**.
+Full detail (problems, solutions, and results per phase) is in **[docs/PROGRESS.md](docs/PROGRESS.md)**. For the rest of the doc layout (commands, architecture, internal), see **[docs/README.md](docs/README.md)**.
 
 ---
 

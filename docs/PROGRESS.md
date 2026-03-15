@@ -1,126 +1,124 @@
 # ContractSentinel — Progress & Milestones
 
-本文档记录项目各阶段完成情况、遇到的主要问题与解决方法、以及结果。便于复盘与展示开发过程。
+This document records what was done in each phase, **main problems encountered**, **how they were solved**, and **results**. It supports both复盘 and sharing the development process with others.
 
 ---
 
-## Phase 0：项目骨架与数据模型
+## Phase 0: Project skeleton and data models
 
-### 完成内容
+### Done
 
-- 项目目录与依赖：`app/` 包结构、`app/config.py`（含 `get_settings()`、`.env` 支持）、`requirements.txt`；子包 `parsing`、`extraction`、`graph`、`retrieval`、`agents`、`schemas`、`api`、`evaluation` 的 `__init__.py`。
-- 数据模型：`app/schemas/contract.py`（Clause、Definition、Party、Obligation、CrossReference、Contract）、`app/schemas/playbook.py`（Rule、RiskLevel）、`app/schemas/risk_memo.py`、`app/schemas/api_models.py`。
+- **Project layout and config**: `app/` package, `app/config.py` (`get_settings()`, `.env`), `requirements.txt`; `__init__.py` for `parsing`, `extraction`, `graph`, `retrieval`, `agents`, `schemas`, `api`, `evaluation`.
+- **Schemas**: `app/schemas/contract.py` (Clause, Definition, Party, Obligation, CrossReference, Contract), `app/schemas/playbook.py` (Rule, RiskLevel), `app/schemas/risk_memo.py`, `app/schemas/api_models.py`.
 
-### 结果
+### Result
 
-- 可 `import app`，`get_settings()` 可读取 NEO4J_*、OPENAI_API_KEY、openai_model 等；依赖可通过 `pip install -r requirements.txt` 安装。
-
----
-
-## Phase 1：结构层
-
-### 任务 3：PDF 解析（Marker）
-
-- **完成**：`app/parsing/`，使用 Marker 将 PDF 转为版式感知文本块，对外 `parse_pdf(path) -> (full_text, blocks)`。
-- **结果**：样本 PDF（如 `EX-10.4(a).pdf`）可解析出完整文本与分页块。
-
-### 任务 4：法律实体与关系抽取（LLM）
-
-- **完成**：`app/extraction/prompts.py`、`app/extraction/entities.py`（`extract_contract` 单次 LLM 调用抽取 clauses、definitions、parties、obligations、cross_references）；`app/extraction/clause_segmenter.py`（规则分段：按 Section X.Y 正则匹配）；`app/extraction/cross_references.py`（规则解析交叉引用，生成 CrossReference 列表）。
-- **流程**：结构层管道采用「规则分段优先」：先 `segment_clauses(full_text)` 得到 rule-based clauses，再 LLM 抽取；若规则分段有结果，则用其覆盖 LLM 的 clauses，再对 clauses 做交叉引用抽取。
-- **结果**：输出与 `schemas.contract` 一致，可供 ingest 使用。
-
-### 任务 5：Neo4j 图存储与查询
-
-- **完成**：`app/graph/client.py`、`app/graph/models.py`（节点/边常量）、`app/graph/ingest.py`（Contract → Clause、Definition、Party、Obligation 及 HAS_CLAUSE、DEFINES、HAS_OBLIGATION、HAS_PARTY、REFERENCES）、`app/graph/query.py`（`get_clause_neighborhood`：某 clause 的 text、section_id、references_in/out、definitions、obligations）。
-- **结果**：抽取结果可写入 Neo4j；按 contract_id、clause_id 可查询条款邻域。
-
-### 任务 6：结构层端到端串联
-
-- **完成**：`scripts/run_structural_pipeline.py`（PDF → parse → segment_clauses → extract_contract → extract_cross_references → ingest_contract）；`scripts/verify_extraction.py`（仅 LLM 抽取并导出 `out/contract_<stem>.json`）。
-- **结果**：一条命令跑通「PDF → 规则分段 → LLM 抽取 → 交叉引用 → Neo4j 写入」；图中可查到条款与引用关系。
+- `import app` works; `get_settings()` reads NEO4J_*, OPENAI_API_KEY, openai_model; dependencies install via `pip install -r requirements.txt`.
 
 ---
 
-## Phase 2：推理层 — 检索与 Playbook
+## Phase 1: Structural layer
 
-### 任务 7：审查手册配置与加载
+### Task 3: PDF parsing (Marker)
 
-- **完成**：`data/playbooks/default.yaml`（多条规则：R001 无限责任、R002 单方终止、R003 宽泛赔偿、R004 数据使用、R005 IP 归属、R006 单方修订等，含 keywords、criteria、risk_level）；`app/agents/playbook_loader.py`（YAML → List[Rule]）。
-- **结果**：Scanner 可加载 playbook 规则列表。
+- **Done**: `app/parsing/` — Marker turns PDF into layout-aware text blocks; public API `parse_pdf(path) -> (full_text, blocks)`.
+- **Result**: Sample PDF (e.g. `EX-10.4(a).pdf`) parses to full text and per-page blocks.
 
-### 任务 8：图增强检索（RAG + Graph Context）
+### Task 4: Legal entity and relation extraction (LLM)
 
-- **完成**：`app/retrieval/graph_context.py`（`build_graph_context`：从 get_clause_neighborhood 取 definitions、obligations、references 拼成一段文本）；`app/retrieval/rag.py`（`get_context_for_clause`：返回 `clause_text`、`section_id`、`graph_context`、`snippets`）；`scripts/run_retrieval_demo.py`（随机或指定 contract_id/clause_id 打印 clause_text、graph_context、snippets）。
-- **结果**：给定 contract_id、clause_id，可拿到该条款全文与图上下文，供 Scanner 使用。
+- **Done**: `app/extraction/prompts.py`, `app/extraction/entities.py` (`extract_contract` — single LLM call for clauses, definitions, parties, obligations, cross_references); `app/extraction/clause_segmenter.py` (rule-based segmentation by Section X.Y); `app/extraction/cross_references.py` (rule-based cross-ref parsing → CrossReference list).
+- **Flow**: Pipeline uses “rule-based segmentation first”: `segment_clauses(full_text)` yields clauses; if present, they override LLM clauses; then cross-references are extracted over clauses.
+- **Result**: Output matches `schemas.contract` and is ready for ingest.
 
----
+### Task 5: Neo4j graph storage and query
 
-## Phase 3：推理层 — Scanner Agent 与全合同扫描
+- **Done**: `app/graph/client.py`, `app/graph/models.py` (node/edge constants), `app/graph/ingest.py` (Contract → Clause, Definition, Party, Obligation; HAS_CLAUSE, DEFINES, HAS_OBLIGATION, HAS_PARTY, REFERENCES), `app/graph/query.py` (`get_clause_neighborhood`: clause text, section_id, references_in/out, definitions, obligations).
+- **Result**: Extraction can be written to Neo4j; clauses queryable by contract_id and clause_id.
 
-### 任务 9：Scanner Agent
+### Task 6: Structural pipeline end-to-end
 
-- **完成**：`app/agents/prompts.py`（SCANNER_SYSTEM、SCANNER_USER_TEMPLATE）；`app/agents/scanner.py`（`scan_clause(clause_text, clause_ref, rules, graph_context)`，调用 OpenAI JSON mode，解析 findings，兼容 `rule_triggered`/`rule_id`、`evidence_summary`/`evidence`）；`scripts/run_scanner_demo.py`（从图取随机或指定 clause，调 get_context_for_clause → scan_clause，打印 findings）。
-
-#### 主要问题 1：随机跑多个 section 时 Findings 始终为 0
-
-- **现象**：对多个 section 跑 Scanner，输出均为 Findings: 0 (none)。
-- **可能原因**：Scanner 逻辑错误、规则/合同不匹配、或传入模型的 clause_text 为空。
-- **排查**：
-  - **诊断 1**：人工构造一条必中条款（含 "indemnify, defend, and hold harmless" + "without limitation"），单独调 `scan_clause`。**结果**：能命中 R003 和 R001 → Scanner 代码与解析逻辑正常。
-  - **诊断 2**：在 scanner 中加环境变量 `CONTRACT_SENTINEL_DEBUG_SCANNER=1`，打印传入模型的 rules_text、clause_text、graph_context。对指定 section_9_1 跑 demo 时发现 **CLAUSE 为空、GRAPH CONTEXT 为默认提示** → 问题在「数据未传入」而非 Scanner 本身。
-
-#### 主要问题 2：run_scanner_demo 传入的 clause_text 为空
-
-- **根因**：部分 clause 在 Neo4j 中不存在或 Clause 节点的 `text` 未写入。例如结构层管道用**规则分段**产出 clauses，若 PDF 中未识别出 "Section 9.1" 等标题，则图中没有 section_9_1，`get_context_for_clause` 返回的 `clause_text` 为空。
-- **解决**：
-  - 在 `run_scanner_demo.py` 中显式用 `ctx.get("clause_text")`，并对空字符串打 **Warning**，提示「该 clause 可能在图中不存在或未存储条文」。
-  - 文档中明确：Findings: 0 有两类原因——（1）数据缺失：clause_text 为空；（2）规则未命中：有完整 clause_text 但条文不匹配 playbook。
-
-#### 主要问题 3：指定 section 时 shell 报错 "zsh: number expected"
-
-- **现象**：执行 `python scripts/run_scanner_demo.py EX-10.4(a) section_9_1` 时 zsh 报错。
-- **根因**：合同 ID 中含括号 `(a)`，zsh 将括号当作特殊字符解析。
-- **解决**：合同 ID 加引号，例如 `python scripts/run_scanner_demo.py "EX-10.4(a)" section_9_1`。已在 `docs/commands.md` 中统一改为带引号写法。
-
-#### 主要问题 4：有 clause_text 的 section 仍返回 0 findings
-
-- **现象**：例如 section_5_1 在 debug 下 clause_text、graph_context 均非空，但 Findings 仍为 0。
-- **结论**：该条款内容（如 Company Data 定义）本身不包含当前 playbook 的关键词（indemnify、terminate、unlimited liability 等），属于**规则未命中**，而非 bug。与「空 clause_text 导致 0」需区分。
-- **实施**：增加两项验证脚本 `run_scanner_verifications.py`：类别 1 用有 text 的 clause（如 section_5_1）验证「有文本但 0 = 规则未命中」；类别 2 用图中不存在的 clause（如 section_9_1 若未 ingest）验证「空文本 = 图里没数据」。并在文档中写明「当前状态总结」与「已确认 / 尚未确认」结论。
-
-### 全合同扫描与写回 Neo4j
-
-- **完成**：
-  - `scripts/scan_all_clauses.py`：遍历图中所有 clause，对每个有 clause_text 的条款调 `scan_clause`，汇总为 (Clause, Rule, Risk Level, Evidence)；终端打印表格，并写入 `out/scan_<contract_id>.tsv`。
-  - 将 findings 写回 Neo4j：新增 `Rule` 节点（id、risk_level、description）与关系 `Clause -[:TRIGGERS {evidence?}]-> Rule`；每次运行前删除该合同下已有 TRIGGERS 再写入，便于 Critic Agent 直接查询。
-- **图模型**：`app/graph/models.py` 增加 `LABEL_RULE`、`REL_TRIGGERS`。
-- **结果**：一条命令可扫完整合同并得到 Clause | Rule | Risk Level 表与 TSV；图中可查「某条款触发了哪些规则」，为后续 Critic 提供输入。
+- **Done**: `scripts/run_structural_pipeline.py` (PDF → parse → segment_clauses → extract_contract → extract_cross_references → ingest_contract); `scripts/verify_extraction.py` (LLM-only extraction and export to `out/contract_<stem>.json`).
+- **Result**: One command runs PDF → rule-based segments → LLM extraction → cross-refs → Neo4j; the graph contains clauses and reference links.
 
 ---
 
-## 当前状态小结
+## Phase 2: Reasoning layer — retrieval and playbook
 
-| 层级       | 状态 | 说明 |
-|------------|------|------|
-| 结构层     | ✅   | PDF → 解析 → 规则分段 + LLM 抽取 → 交叉引用 → Neo4j 入库，端到端跑通 |
-| 检索层     | ✅   | 按 clause 取 clause_text + graph_context，retrieval demo 验证 |
-| Playbook   | ✅   | 多规则 YAML 加载，Scanner 使用 |
-| Scanner    | ✅   | 单条款/全合同扫描正常；人工必中条款可触发 findings；真实条款 0 需区分「空文本」与「规则未命中」 |
-| 全合同扫描 | ✅   | scan_all_clauses 输出 TSV 并写回 TRIGGERS 到 Neo4j |
-| Critic     | ⏳   | 未实现；图已有 TRIGGERS，可直接读 Clause→Rule |
-| Evaluator  | ⏳   | 未实现 |
-| LangGraph  | ⏳   | 未实现 |
-| API/前端   | ⏳   | 骨架存在，审查流未接 |
+### Task 7: Playbook configuration and loading
+
+- **Done**: `data/playbooks/default.yaml` (rules R001–R00x: unlimited liability, unilateral termination, broad indemnification, data usage, IP transfer, unilateral amendment, etc., with keywords, criteria, risk_level); `app/agents/playbook_loader.py` (YAML → List[Rule]).
+- **Result**: Scanner loads a list of rules from the playbook.
+
+### Task 8: Graph-augmented retrieval (RAG + graph context)
+
+- **Done**: `app/retrieval/graph_context.py` (`build_graph_context`: definitions, obligations, references from `get_clause_neighborhood` → one text block); `app/retrieval/rag.py` (`get_context_for_clause`: returns `clause_text`, `section_id`, `graph_context`, `snippets`); `scripts/run_retrieval_demo.py` (random or specified contract_id/clause_id, prints clause_text, graph_context, snippets).
+- **Result**: Given contract_id and clause_id, the system returns clause text and graph context for the Scanner.
 
 ---
 
-## 脚本与命令速查
+## Phase 3: Reasoning layer — Scanner agent and full-contract scan
 
-- 结构层：`python scripts/run_structural_pipeline.py "data/sample_contracts/EX-10.4(a).pdf"`
-- 图检索：`python scripts/run_retrieval_demo.py "EX-10.4(a)" section_1_1`
-- Scanner 单条：`python scripts/run_scanner_demo.py "EX-10.4(a)" section_5_1`
-- Scanner 全合同：`python scripts/scan_all_clauses.py "EX-10.4(a)"`
-- 诊断/验证：`python scripts/run_scanner_diagnostic.py`；`python scripts/run_scanner_verifications.py "EX-10.4(a)"`
+### Task 9: Scanner agent
 
-更多命令见 `docs/commands.md`。
+- **Done**: `app/agents/prompts.py` (SCANNER_SYSTEM, SCANNER_USER_TEMPLATE); `app/agents/scanner.py` (`scan_clause(clause_text, clause_ref, rules, graph_context)`, OpenAI JSON mode, parses findings, accepts `rule_triggered`/`rule_id`, `evidence_summary`/`evidence`); `scripts/run_scanner_demo.py` (gets clause from graph via get_context_for_clause → scan_clause, prints findings).
+
+#### Issue 1: Scanner always returned 0 findings on random sections
+
+- **Symptom**: Running the Scanner on several sections always showed Findings: 0 (none).
+- **Possible causes**: Bug in Scanner, rules not matching the contract, or empty `clause_text` passed to the model.
+- **Diagnostics**:
+  - **Diagnostic 1**: A hand-crafted “must-hit” clause (e.g. “indemnify, defend, and hold harmless” + “without limitation”) was passed to `scan_clause`. **Result**: It correctly triggered R003 and R001 → Scanner logic and parsing are fine.
+  - **Diagnostic 2**: With `CONTRACT_SENTINEL_DEBUG_SCANNER=1`, the script prints `rules_text`, `clause_text`, and `graph_context` sent to the model. For a given section_9_1 run, **CLAUSE was empty** and graph context was the default message → the issue was **missing input data**, not the Scanner.
+
+#### Issue 2: Empty clause_text in run_scanner_demo
+
+- **Root cause**: Some clauses do not exist in Neo4j or their Clause node has no `text`. The structural pipeline uses **rule-based segmentation**; if the PDF does not contain a “Section 9.1” style heading, there is no section_9_1 in the graph, so `get_context_for_clause` returns empty `clause_text`.
+- **Fix**: In `run_scanner_demo.py`, use `ctx.get("clause_text")` and print a **Warning** when it is empty (“clause may not exist in graph or has no text”). Document that Findings: 0 can be due to (1) **missing data** (empty clause_text) or (2) **rule not matched** (clause has text but does not match playbook).
+
+#### Issue 3: Shell error “zsh: number expected” when passing contract ID
+
+- **Symptom**: `python scripts/run_scanner_demo.py EX-10.4(a) section_9_1` failed in zsh.
+- **Cause**: The parentheses in the contract ID `(a)` are special in zsh.
+- **Fix**: Quote the contract ID: `python scripts/run_scanner_demo.py "EX-10.4(a)" section_9_1`. All examples in `docs/commands.md` were updated to use quoted contract IDs.
+
+#### Issue 4: Sections with non-empty clause_text still returned 0 findings
+
+- **Symptom**: e.g. section_5_1 had non-empty clause_text and graph_context in debug output but Findings: 0.
+- **Conclusion**: That clause (e.g. Company Data definitions) does not contain the playbook keywords (indemnify, terminate, unlimited liability, etc.) → **rule not matched**, not a bug. This is distinct from “0 due to empty clause_text.”
+- **Implementation**: Added `run_scanner_verifications.py`: category 1 uses a clause with text (e.g. section_5_1) to confirm “has text but 0 = rule not matched”; category 2 uses a clause missing from the graph to confirm “empty text = no data in graph.” Documented “current state summary” and “confirmed / not yet confirmed” in the docs.
+
+### Full-contract scan and write-back to Neo4j
+
+- **Done**:
+  - `scripts/scan_all_clauses.py`: iterates over all clauses in the graph, runs `scan_clause` for each with non-empty text, aggregates (Clause, Rule, Risk Level, Evidence); prints a table and writes `out/scan_<contract_id>.tsv`.
+  - **Write-back to Neo4j**: Creates `Rule` nodes (id, risk_level, description) and `Clause -[:TRIGGERS {evidence?}]-> Rule` edges; existing TRIGGERS for the contract are removed before each run so the Critic can read up-to-date findings.
+- **Graph model**: `app/graph/models.py` extended with `LABEL_RULE` and `REL_TRIGGERS`.
+- **Result**: One command scans the full contract and produces a Clause | Rule | Risk Level table and TSV; the graph stores which clauses trigger which rules for the Critic.
+
+---
+
+## Current status summary
+
+| Layer           | Status | Notes |
+|-----------------|--------|--------|
+| Structural      | ✅     | PDF → parse → rule-based segmentation + LLM extraction → cross-refs → Neo4j ingest; end-to-end working |
+| Retrieval       | ✅     | Per-clause clause_text + graph_context; retrieval demo verified |
+| Playbook        | ✅     | Multi-rule YAML load; used by Scanner |
+| Scanner         | ✅     | Single-clause and full-contract scan; synthetic “must-hit” clause triggers findings; real-clause 0 explained by “empty text” vs “rule not matched” |
+| Full-contract scan | ✅  | scan_all_clauses outputs TSV and writes TRIGGERS to Neo4j |
+| Critic          | ⏳     | Not implemented; graph has TRIGGERS for Clause→Rule |
+| Evaluator       | ⏳     | Not implemented |
+| LangGraph       | ⏳     | Not implemented |
+| API / Frontend  | ⏳     | Stub only; review flow not wired |
+
+---
+
+## Script and command quick reference
+
+- **Structural pipeline**: `python scripts/run_structural_pipeline.py "data/sample_contracts/EX-10.4(a).pdf"`
+- **Graph retrieval**: `python scripts/run_retrieval_demo.py "EX-10.4(a)" section_1_1`
+- **Scanner (single clause)**: `python scripts/run_scanner_demo.py "EX-10.4(a)" section_5_1`
+- **Scanner (full contract)**: `python scripts/scan_all_clauses.py "EX-10.4(a)"`
+- **Diagnostics**: `python scripts/run_scanner_diagnostic.py`; `python scripts/run_scanner_verifications.py "EX-10.4(a)"`
+
+More commands: [commands.md](commands.md).
