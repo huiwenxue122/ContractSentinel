@@ -174,6 +174,12 @@ python scripts/run_scanner_demo.py "EX-10.4(a)" section_9_1
   - 若 `text` 非空，再执行：  
     `python scripts/run_scanner_demo.py "EX-10.4(a)" section_7_2`
 
+**扫完整合同**（图中所有 clause 跑 Scanner，输出 Clause | Rule | Risk Level，并写入 `out/scan_<contract_id>.tsv`；同时把 findings 写回 Neo4j：`Clause -[:TRIGGERS {evidence?}]-> Rule`，便于 Critic Agent 直接读取）：
+
+```bash
+python scripts/scan_all_clauses.py "EX-10.4(a)"
+```
+
 **一键跑两项验证**（区分空文本 vs 规则未命中，并检查若干真实 clause 是否有 findings）：
 
 ```bash
@@ -239,6 +245,7 @@ npm run dev
 | 任务 8 图检索（指定条款） | `python scripts/run_retrieval_demo.py "EX-10.4(a)" section_1_1` |
 | 任务 9 Scanner（随机） | `python scripts/run_scanner_demo.py "EX-10.4(a)"` |
 | 任务 9 Scanner（指定条款，可复现有 findings） | `python scripts/run_scanner_demo.py "EX-10.4(a)" section_9_1` |
+| 任务 9 Scanner 扫完整合同 | `python scripts/scan_all_clauses.py "EX-10.4(a)"` |
 | 任务 9 Scanner 两项验证（一键） | `python scripts/run_scanner_verifications.py "EX-10.4(a)"` |
 | 启动后端 API     | `uvicorn app.main:app --reload`        |
 | 启动前端         | `cd frontend && npm run dev`          |

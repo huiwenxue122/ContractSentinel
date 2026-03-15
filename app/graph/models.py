@@ -8,6 +8,7 @@ LABEL_CLAUSE = "Clause"
 LABEL_DEFINITION = "Definition"
 LABEL_PARTY = "Party"
 LABEL_OBLIGATION = "Obligation"
+LABEL_RULE = "Rule"  # Playbook rule (id e.g. R001), risk_level; Clause-[:TRIGGERS]->Rule
 
 # Relationship types
 REL_REFERENCES = "REFERENCES"       # (Clause)-[:REFERENCES {ref_text}]->(Clause)
@@ -15,3 +16,4 @@ REL_DEFINES = "DEFINES"             # (Clause)-[:DEFINES]->(Definition)
 REL_HAS_OBLIGATION = "HAS_OBLIGATION"  # (Clause)-[:HAS_OBLIGATION]->(Obligation)
 REL_HAS_PARTY = "HAS_PARTY"         # (Contract)-[:HAS_PARTY]->(Party)
 REL_HAS_CLAUSE = "HAS_CLAUSE"       # (Contract)-[:HAS_CLAUSE]->(Clause)
+REL_TRIGGERS = "TRIGGERS"           # (Clause)-[:TRIGGERS {evidence?}]->(Rule); Scanner findings

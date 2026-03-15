@@ -160,6 +160,28 @@ To validate system behavior, the project includes a small contract review benchm
 
 ---
 
+## Progress / Milestones
+
+Development is tracked in phases; each phase is documented with **what was done**, **main problems encountered**, and **how they were solved**.
+
+| Phase | Status | Summary |
+|-------|--------|---------|
+| **Phase 0** | Done | Project skeleton, config, schemas (Contract, Clause, Playbook, RiskMemo). |
+| **Phase 1** | Done | PDF parsing (Marker), rule-based clause segmentation, LLM extraction, cross-references, Neo4j ingest & query. End-to-end: PDF → graph. |
+| **Phase 2** | Done | Playbook loading, graph-augmented retrieval (clause text + graph context per clause). |
+| **Phase 3** | In progress | Scanner Agent (playbook-based risk scan), full-contract scan, writing findings back to Neo4j as `Clause -[:TRIGGERS]-> Rule` for the Critic. |
+| **Phase 4–5** | Pending | Critic/Evaluator agents, LangGraph orchestration, API routes, frontend. |
+
+**Notable issues resolved:**
+
+- **Scanner always returning 0 findings** — Root cause was sometimes empty `clause_text` (clause not in graph or no text stored). We added a diagnostic (synthetic “must-hit” clause) to confirm the Scanner works, and debug output to inspect inputs. We now distinguish “no data” (empty text) vs “rule not matched” (text present but no playbook match).
+- **Shell error when passing contract ID** — Contract IDs with parentheses (e.g. `EX-10.4(a)`) must be quoted in zsh to avoid `number expected`.
+- **Findings written back to graph** — Full-contract scan now creates `Rule` nodes and `Clause -[:TRIGGERS {evidence}]-> Rule` edges so the Critic can read them directly.
+
+Full detail (problems, solutions, and results per phase) is in **[docs/PROGRESS.md](docs/PROGRESS.md)**.
+
+---
+
 ## Repository Structure
 
 ```
