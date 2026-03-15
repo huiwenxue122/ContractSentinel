@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.parsing import parse_pdf
 from app.extraction import extract_contract, extract_cross_references, segment_clauses
+from app.graph import ingest_contract
 
 
 def main() -> None:
@@ -45,6 +46,13 @@ def main() -> None:
 
     print(f"  -> {len(contract.clauses)} clauses, {len(contract.definitions)} definitions, "
           f"{len(contract.cross_references)} cross-refs, {len(contract.parties)} parties")
+
+    # 3) Ingest into Neo4j (optional; skip if NEO4J_PASSWORD not set)
+    try:
+        stats = ingest_contract(contract)
+        print(f"  -> Neo4j ingest: {stats['node_counts']} nodes, {stats['relationship_counts']} relationships")
+    except ValueError as e:
+        print(f"  -> Neo4j ingest skipped: {e}")
 
     # Show first 2 clauses
     for i, c in enumerate(contract.clauses[:2]):
