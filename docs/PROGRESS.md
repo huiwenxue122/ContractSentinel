@@ -95,6 +95,12 @@ This document records what was done in each phase, **main problems encountered**
 - **Graph model**: `app/graph/models.py` extended with `LABEL_RULE` and `REL_TRIGGERS`.
 - **Result**: One command scans the full contract and produces a Clause | Rule | Risk Level table and TSV; the graph stores which clauses trigger which rules for the Critic.
 
+### Task 10: Critic agent
+
+- **Done**: `app/agents/prompts.py` (CRITIC_SYSTEM, CRITIC_USER_TEMPLATE); `app/agents/critic.py` (`evaluate_finding(finding, clause_text, graph_context, rule_description)`). Calls the LLM with the scanner finding (clause_ref, rule_triggered, evidence_summary), full clause text, and graph context; returns `{ "justified": bool, "reason": str }`.
+- **Demo**: `scripts/run_critic_demo.py` — runs Scanner on a clause, then runs Critic on each finding and prints justified/reason.
+- **Result**: Downstream Evaluator can use Critic output to filter or weight findings.
+
 ---
 
 ## Current status summary
@@ -106,7 +112,7 @@ This document records what was done in each phase, **main problems encountered**
 | Playbook        | ✅     | Multi-rule YAML load; used by Scanner |
 | Scanner         | ✅     | Single-clause and full-contract scan; synthetic “must-hit” clause triggers findings; real-clause 0 explained by “empty text” vs “rule not matched” |
 | Full-contract scan | ✅  | scan_all_clauses outputs TSV and writes TRIGGERS to Neo4j |
-| Critic          | ⏳     | Not implemented; graph has TRIGGERS for Clause→Rule |
+| Critic          | ✅     | `evaluate_finding`; uses clause + graph context to output justified/reason |
 | Evaluator       | ⏳     | Not implemented |
 | LangGraph       | ⏳     | Not implemented |
 | API / Frontend  | ⏳     | Stub only; review flow not wired |
@@ -120,5 +126,6 @@ This document records what was done in each phase, **main problems encountered**
 - **Scanner (single clause)**: `python scripts/run_scanner_demo.py "EX-10.4(a)" section_5_1`
 - **Scanner (full contract)**: `python scripts/scan_all_clauses.py "EX-10.4(a)"`
 - **Diagnostics**: `python scripts/run_scanner_diagnostic.py`; `python scripts/run_scanner_verifications.py "EX-10.4(a)"`
+- **Critic (Task 10)**: `python scripts/run_critic_demo.py "EX-10.4(a)" section_5_1`
 
 More commands: [commands.md](commands.md).
