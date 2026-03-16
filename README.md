@@ -2,6 +2,8 @@
 
 **Agentic Legal Risk Review System for Contract Escalation**
 
+##Demo Presentation:** **[https://drive.google.com/file/d/194uA5EMdpMhd2l5pLxVBVo3EIBthZoNH/view?usp=sharing](https://drive.google.com/file/d/194uA5EMdpMhd2l5pLxVBVo3EIBthZoNH/view?usp=sharing)**
+
 **Project Presentation:** **[https://drive.google.com/file/d/1iCuXRGiC6RnLPyQMvN24fN3yDGiyxVn7/view?usp=sharing](https://drive.google.com/file/d/1iCuXRGiC6RnLPyQMvN24fN3yDGiyxVn7/view?usp=sharing)**
 
 **Live demo:** **[https://contract-sentinel.vercel.app](https://contract-sentinel.vercel.app)** — open the link to run the full flow (sample contract → review → risk memo) in the browser.
