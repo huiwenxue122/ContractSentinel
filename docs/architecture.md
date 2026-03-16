@@ -421,23 +421,9 @@ contractsentinel/
 
 ---
 
-## Extraction pipeline scope
+## Current Extraction pipeline scope
 
 The current **rule-based clause segmenter** (`app/extraction/clause_segmenter.py`) is tuned for contracts with "Section X.Y" numbering (e.g. the sample `EX-10.4(a).pdf`). PDFs that use other patterns (e.g. "Article 1", "§ 2.1", or no such headings) may get no rule-based clauses; the pipeline still runs and falls back to LLM-only clauses, but quality may vary. The **sample-based flow** (script and `POST /contracts/demo`) is the stable MVP path for the built-in sample contract.
-
----
-
-## Scope note
-
-This project is intentionally ambitious in technical stack because it is meant to demonstrate modern LegalTech AI engineering patterns:
-
-* PDF-to-graph ingestion,
-* graph-augmented retrieval,
-* agent orchestration,
-* critique-based reasoning,
-* evidence-centered human review.
-
-It is not positioned as a production-ready legal platform, but as a focused systems project that explores how modern LLM tooling can be combined for contract risk review.
 
 ---
 
