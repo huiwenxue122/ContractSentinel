@@ -2,7 +2,7 @@
 
 **Agentic Legal Risk Review System for Contract Escalation**
 
-**Demo Presentation:** **[https://drive.google.com/file/d/194uA5EMdpMhd2l5pLxVBVo3EIBthZoNH/view?usp=sharing](https://drive.google.com/file/d/194uA5EMdpMhd2l5pLxVBVo3EIBthZoNH/view?usp=sharing)**
+**Demo Presentation:** **[(https://youtu.be/N8oIo9SzWBE)](https://youtu.be/N8oIo9SzWBE)]**
 
 **Project Presentation:** **[https://drive.google.com/file/d/1iCuXRGiC6RnLPyQMvN24fN3yDGiyxVn7/view?usp=sharing](https://drive.google.com/file/d/1iCuXRGiC6RnLPyQMvN24fN3yDGiyxVn7/view?usp=sharing)**
 
